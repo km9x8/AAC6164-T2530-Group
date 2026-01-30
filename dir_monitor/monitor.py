@@ -1,10 +1,12 @@
+print("Monitoring started...")
 import os
 import time
 import csv
 from pathlib import Path
 
-MONITORED_DIR = Path("monitored_dir")
-LOG_FILE = Path("output/logs/dir_changes.csv")
+BASE_DIR = Path(__file__).resolve().parents[1]
+MONITORED_DIR = BASE_DIR / "monitored_dir"
+LOG_FILE = BASE_DIR / "output" / "logs" / "dir_changes.csv"
 
 def snapshot_directory(directory: Path):
     snapshot = {}
