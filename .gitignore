@@ -1,0 +1,5 @@
+.venv/
+output/logs/
+dir_monitor/output/
+monitored_dir/
+*.save

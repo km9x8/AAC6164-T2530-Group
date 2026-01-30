@@ -2,60 +2,88 @@ import time
 import csv
 import psutil
 from pathlib import Path
+from datetime import datetime
 
-LOG_FILE = Path("output/logs/system_metrics.csv")
+# ==============================
+# Paths (absolute, safe)
+# ==============================
+BASE_DIR = Path(__file__).resolve().parents[1]
+LOG_DIR = BASE_DIR / "output" / "logs"
+LOG_FILE = LOG_DIR / "system_metrics.csv"
+
+LOG_DIR.mkdir(parents=True, exist_ok=True)
+
+# ==============================
+# Active uptime (script runtime)
+# ==============================
+START_TIME = time.time()
+
+# ==============================
+# CSV header
+# ==============================
+CSV_HEADER = [
+    "timestamp",
+    "cpu_percent",
+    "mem_percent",
+    "mem_used",
+    "mem_total",
+    "disk_percent",
+    "disk_used",
+    "disk_total",
+    "processes",
+    "system_uptime",
+    "active_uptime",
+]
+
+def write_header_if_needed():
+    if not LOG_FILE.exists():
+        with open(LOG_FILE, "w", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerow(CSV_HEADER)
 
 def collect_metrics():
     cpu_percent = psutil.cpu_percent(interval=1)
+
     mem = psutil.virtual_memory()
     disk = psutil.disk_usage("/")
 
     processes_count = len(psutil.pids())
 
-    return {
-        "cpu_percent": cpu_percent,
-        "mem_percent": mem.percent,
-        "mem_used": mem.used,
-        "mem_total": mem.total,
-        "disk_percent": disk.percent,
-        "disk_used": disk.used,
-        "disk_total": disk.total,
-        "processes": processes_count
-    }
-if __name__ == "__main__":
-    LOG_FILE.parent.mkdir(parents=True, exist_ok=True)
+    system_uptime = time.time() - psutil.boot_time()
+    active_uptime = time.time() - START_TIME
 
-    if not LOG_FILE.exists():
-        with open(LOG_FILE, "w", newline="") as f:
-            writer = csv.writer(f)
-            writer.writerow([
-                "timestamp",
-                "cpu_percent",
-                "mem_percent",
-                "mem_used",
-                "mem_total",
-                "disk_percent",
-                "disk_used",
-                "disk_total",
-                "processes"
-            ])
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    return [
+        timestamp,
+        cpu_percent,
+        mem.percent,
+        mem.used,
+        mem.total,
+        disk.percent,
+        disk.used,
+        disk.total,
+        processes_count,
+        round(system_uptime, 2),
+        round(active_uptime, 2),
+    ]
+
+def append_metrics(row):
+    with open(LOG_FILE, "a", newline="") as f:
+        writer = csv.writer(f)
+        writer.writerow(row)
+
+def main():
+    print("System metrics monitoring started...")
+    print("Logging to:", LOG_FILE)
+
+    write_header_if_needed()
 
     while True:
-        metrics = collect_metrics()
-        timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
+        row = collect_metrics()
+        append_metrics(row)
+        time.sleep(3)   # sampling interval
 
-        with open(LOG_FILE, "a", newline="") as f:
-            writer = csv.writer(f)
-            writer.writerow([
-                timestamp,
-                metrics["cpu_percent"],
-                metrics["mem_percent"],
-                metrics["mem_used"],
-                metrics["mem_total"],
-                metrics["disk_percent"],
-                metrics["disk_used"],
-                metrics["disk_total"],
-                metrics["processes"]
-            ])
-
-        time.sleep(3)
+if __name__ == "__main__":
+    main()
+   
