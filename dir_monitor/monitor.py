@@ -85,3 +85,5 @@ if __name__ == "__main__":
                 writer.writerow([ts, "MODIFIED", name, info["size"], info["mtime"], info["mode"], info["uid"], info["gid"]])
 
         prev_state = curr_state
+print(f"Watching: {MONITORED_DIR}")
+print(f"Logging to: {LOG_FILE}")
