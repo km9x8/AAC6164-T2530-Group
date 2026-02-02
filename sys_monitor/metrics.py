@@ -89,3 +89,18 @@ if __name__ == "__main__":
    
 # System Performance & Resource Monitoring
 # Author: Osama
+"""
+System Performance and Resource Monitoring Module
+
+This module collects real-time system metrics including:
+- CPU usage percentage
+- Memory usage statistics
+- Disk usage information
+- Number of active processes
+- System uptime and active runtime
+
+The collected data is logged periodically into a CSV file
+for further processing and visualization.
+
+Author: Osama
+"""
